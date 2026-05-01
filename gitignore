@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Model & data files (large binaries — use Git LFS or keep local)
+# Comment these out if you WANT to commit them to the repo
+# xgboost_model.json
+# scaler.pkl
+# unified_dataset.csv
+# top_recommendations.csv
+
+# Logs
+*.log
