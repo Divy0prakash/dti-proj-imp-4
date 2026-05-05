@@ -996,29 +996,36 @@ def render_advanced_analytics(filt_unified: pd.DataFrame, show_heatmap: bool = T
             st.plotly_chart(chart_festival_comparison(filt_unified), use_container_width=True, config={"displayModeBar": False})
         with c2:
             if "festival" in filt_unified.columns and "units_sold" in filt_unified.columns:
-                fest_stats = filt_unified.groupby("festival").agg({
+                # Safe aggregation — festival column may have 0, 1, or both values
+                _agg = filt_unified.groupby("festival").agg({
                     "units_sold": "mean",
                     "price": "mean",
-                }).rename(index={0: "Non-Festival", 1: "Festival"}).reset_index(drop=True)
-                fest_stats.index = ["Non-Festival", "Festival"]
+                })
+                # Map numeric index values to labels; keep only what exists
+                _label_map = {0: "Non-Festival", 1: "Festival 🎉"}
+                _agg.index = [_label_map.get(v, str(v)) for v in _agg.index]
+                fest_stats = _agg  # index is now string labels, length = however many groups exist
 
-                fig = go.Figure()
-                metrics = ["units_sold", "price"]
-                colors = ["#f59e0b", "#34d399"]
-                for i, (metric, color) in enumerate(zip(metrics, colors)):
-                    if metric in fest_stats.columns:
-                        fig.add_trace(go.Bar(
-                            x=fest_stats.index,
-                            y=fest_stats[metric],
-                            name=metric.replace("_", " ").title(),
-                            marker_color=color,
-                        ))
-                apply_theme(fig,
-                    barmode="group",
-                    title="Avg Units Sold & Price — Festival vs Non-Festival",
-                    height=380,
-                )
-                st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+                if not fest_stats.empty:
+                    fig = go.Figure()
+                    metrics = ["units_sold", "price"]
+                    colors = ["#f59e0b", "#34d399"]
+                    for metric, color in zip(metrics, colors):
+                        if metric in fest_stats.columns:
+                            fig.add_trace(go.Bar(
+                                x=list(fest_stats.index),
+                                y=fest_stats[metric].tolist(),
+                                name=metric.replace("_", " ").title(),
+                                marker_color=color,
+                            ))
+                    apply_theme(fig,
+                        barmode="group",
+                        title="Avg Units Sold & Price — Festival vs Non-Festival",
+                        height=380,
+                    )
+                    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+                else:
+                    st.info("No festival data available for current filters.")
 
     with tab3:
         st.plotly_chart(chart_revenue_simulation(filt_unified), use_container_width=True, config={"displayModeBar": False})
